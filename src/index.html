@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    <meta charset="utf-8">
+</head>
+
+<body>
+
+    <div id="errors" style="
+  background: #c00;
+  color: #fff;
+  display: none;
+  margin: -20px -20px 20px;
+  padding: 20px;
+  white-space: pre-wrap;
+"></div>
+
+    <div id="root"></div>
+
+
+    <script>
+        window.addEventListener('mousedown', function(e) {
+            document.body.classList.add('mouse-navigation');
+            document.body.classList.remove('kbd-navigation');
+        });
+        window.addEventListener('keydown', function(e) {
+            if (e.keyCode === 9) {
+                document.body.classList.add('kbd-navigation');
+                document.body.classList.remove('mouse-navigation');
+            }
+        });
+        window.addEventListener('click', function(e) {
+            if (e.target.tagName === 'A' && e.target.getAttribute('href') === '#') {
+                e.preventDefault();
+            }
+        });
+        window.onerror = function(message, source, line, col, error) {
+            var text = error ? error.stack || error : message + ' (at ' + source + ':' + line + ':' + col + ')';
+            errors.textContent += text + '\n';
+            errors.style.display = '';
+        };
+
+        console.error = (function(old) {
+            return function error() {
+                errors.textContent += Array.prototype.slice.call(arguments).join(' ') + '\n';
+                errors.style.display = '';
+                old.apply(this, arguments);
+            }
+        })(console.error);
+    </script>
+
+</body>
+
+</html>
