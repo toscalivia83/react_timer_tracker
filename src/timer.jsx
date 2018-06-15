@@ -3,18 +3,38 @@ import React from 'react';
 export default class Timer extends React.Component {
   constructor (props) {
     super(props)
-    this.state = {count: 0}
+    this.state = {
+      count: 0,
+      isActive: false
+    }
+    this.startTimer = this.startTimer.bind(this);
+    this.stopTimer = this.stopTimer.bind(this);
   }
 
-  componentDidMount() {
-    this.props.onRef(this);
+  componentWillReceiveProps(props){
+    console.log(props);
+    const isActive = Boolean(props.isActive);
+    const isActiveHasChanged = Boolean(props.isActive !== this.state.isActive);
+    debugger;
+    if (isActiveHasChanged){
+        if (isActive){
+          this.startTimer();
+          this.setState({isActive: true});
+        } else {
+          this.stopTimer();
+          this.setState({isActive: false});
+        }
+    }
+    props.callbackParent(this.state.count);
   }
+
   componentWillUnmount () {
-    this.props.onRef(undefined);
     clearInterval(this.timer);
   }
   tick () {
-    this.setState({count: (this.state.count + 1)});
+    this.setState({
+      count: (this.state.count + 1)
+    });
   }
   startTimer () {
     clearInterval(this.timer);
@@ -22,8 +42,9 @@ export default class Timer extends React.Component {
   }
   stopTimer () {
     clearInterval(this.timer);
-    this.setState({count: 0});
+    //this.setState({count: 0});
   }
+
 
   render () {
     return (

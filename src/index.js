@@ -4,61 +4,88 @@ import './index.css';
 import '../node_modules/bootstrap/dist/css/bootstrap.min.css';
 import Timer from './timer'
 
-class TabList extends React.Component {
+class Race extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      lines: [],
-      runnerName:''
+      players: [],
+      runnerName:'',
+      isActive: false
     };
-    this.handleChange = this.handleChange.bind(this);
-    this.handleClick = this.handleClick.bind(this);
+
+    this.onNameChange = this.onNameChange.bind(this);
+    this.createPlayer = this.createPlayer.bind(this);
     this.startRace = this.startRace.bind(this);
     this.endRace = this.endRace.bind(this);
-    this.addLapCount = this.addLapCount.bind(this);
+    this.endLap = this.endLap.bind(this);
   }
 
-  handleChange(event) {
+  onNameChange(event) {
     this.setState({runnerName: event.target.value});
   }
 
-  handleClick(event) {
+  createPlayer(event) {
     this.setState({
-      lines: this.state.lines.concat([{
+      players: this.state.players.concat([{
       	name: this.state.runnerName, 
       	lapCount:0,
       	totalTime:0,
       	averageTime:0,
       	lastLap:0,
+        lapsTime: []
       }])
     }, function() {
-    	console.log(this.state.lines);
+    	console.log(this.state.players);
     });
   }
 
-  addLapCount(index, event) {
-    console.log('index', index);
-    let linesCopy = this.state.lines.slice();
-    linesCopy[index].lapCount += 1;
-    this.setState({lines: linesCopy});
+  endLap(index, event) {
+    let playersCopy = this.state.players.slice();
+    const reducer = (accumulator, currentValue) => accumulator + currentValue;
+    playersCopy[index].lapCount += 1;
+    if(playersCopy[index].lapsTime.length){
+      debugger;
+      const totalTimeSpentInLastLap = playersCopy[index].totalTime - playersCopy[index].lapsTime.reduce(reducer);
+      playersCopy[index].lapsTime.push(totalTimeSpentInLastLap);
+      console.log("test",playersCopy[index].lapsTime);
+    }else{
+      playersCopy[index].lapsTime.push(playersCopy[index].totalTime);
+    }
+    this.setState({players: playersCopy});
   }
 
 	startRace() {
-		this.child.startTimer();
+		this.setState({
+      isActive: true
+    })
 	}
 
   endRace() {
-    this.child.stopTimer();
+    this.setState({
+      isActive: false
+    })
   }
 
+  onTimerChanged(newState, currentIndex) { 
+    // this.state.players[index].totalTime = newState; 
+      this.setState({
+        'players': this.state.players.filter((player, index) => {
+          if (index === currentIndex) {
+            player.totalTime = newState;
+          }
+          return player;
+        })
+      });
+    }
+
   render() {
-  		const listItems = this.state.lines.map((number, index) =>
+  		const listItems = this.state.players.map((player, index) =>
 		  <tr key={index}>
-		  	<td key="name"><button type="button" className="btn btn-warning" onClick={this.addLapCount.bind(this, index)}>{number.name}</button></td>
-		  	<td key="lapCount">{number.lapCount}</td>
-		  	<td key="totalTime"><Timer onRef={ref => (this.child = ref)} /></td>
-		  	<td key="averageTime">{number.averageTime}</td>
-		  	<td key="lastLap">{number.lastLap}</td>
+		  	<td key="name"><button type="button" className="btn btn-warning" onClick={this.endLap.bind(this, index)}>{player.name}</button></td>
+		  	<td key="lapCount">{player.lapCount}</td>
+		  	<td key="totalTime"><Timer callbackParent={(newState) => this.onTimerChanged(newState, index) } isActive={this.state.isActive} /></td>
+		  	<td key="averageTime">{player.averageTime}</td>
+		  	<td key="lastLap">{player.lastLap}</td>
 		  </tr>
 		);
 
@@ -80,8 +107,8 @@ class TabList extends React.Component {
 				</table>
 	      <div>
 						<span>1km Timer</span>
-						<input className="mx-3" placeholder="Name" type="text" onChange={this.handleChange}/>
-						<button onClick={this.handleClick} className="mx-3 btn btn-primary" type="button">Add Name</button>
+						<input className="mx-3" placeholder="Name" type="text" onChange={this.onNameChange}/>
+						<button onClick={this.createPlayer} className="mx-3 btn btn-primary" type="button">Add Name</button>
 						<button onClick={this.startRace} className="mx-3 btn btn-success">Start Race</button>
 						<button onClick={this.endRace} className="btn btn-danger">End Race</button>
 				</div>
@@ -92,6 +119,6 @@ class TabList extends React.Component {
 
 
 ReactDOM.render(
-  <TabList />,
+  <Race />,
   document.getElementById('root')
 );
